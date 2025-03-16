@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";  // ✅ Import Next.js Image
 import { supabase } from "../../lib/supabaseClient";
 
 export default function Header() {
@@ -30,7 +31,7 @@ export default function Header() {
     <header className="bg-white shadow-md p-4 flex items-center justify-between">
       {/* Left Side - Logo & Title */}
       <div className="flex items-center">
-        <img src="/logo.png" alt="Logo" className="h-6 w-6 mr-2" />
+        <Image src="/logo.png" alt="Logo" width={24} height={24} className="mr-2" /> 
         <h1 className="text-xl font-bold">TODO</h1>
       </div>
 
