@@ -1,9 +1,9 @@
 "use client";
 import { Search, X, PlusCircle, CheckSquare, Square } from "lucide-react";
 import { HiOutlineDocumentPlus } from "react-icons/hi2";
-import { useTodos } from "@/app/TodoContext/page";
+import { useTodos } from "../../TodoContext/page";
 import { useState, useRef, useEffect } from "react";
-import { toggleTaskCompletionInDB } from "@/app/lib/api";
+import { toggleTaskCompletionInDB } from "../../lib/api";
 
 export default function TodoList({ toggleEditor }) {
   const { todos, getTodoById, updateTodo } = useTodos();

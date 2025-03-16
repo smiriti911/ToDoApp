@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/app/lib/supabaseClient";
+import { supabase } from "../../lib/supabaseClient";
 
 export default function Header() {
   const router = useRouter();

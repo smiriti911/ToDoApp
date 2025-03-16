@@ -9,8 +9,8 @@ import {
   Bold, Italic, Underline as UnderlineIcon, List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight, Trash, PlusCircle
 } from 'lucide-react';
-import { useTodos } from '@/app/TodoContext/page';
-import { addTodoToDB, updateTodoInDB, deleteTodoFromDB } from "@/app/lib/api";
+import { useTodos } from '../../TodoContext/page';
+import { addTodoToDB, updateTodoInDB, deleteTodoFromDB }  from '../../lib/api';
 
 const ToolbarButton = ({ onClick, Icon, disabled }) => (
   <button
