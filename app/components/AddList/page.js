@@ -61,8 +61,9 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
   }, [selectedTodo, editor]);
 
   useEffect(() => {
+    const timeoutRef = saveTimeout.current;
     return () => {
-      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      if (timeoutRef) clearTimeout(timeoutRef);
     };
   }, []);
 
@@ -135,7 +136,7 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
         <ToolbarButton
           onClick={() => editor?.can().toggleUnderline() && editor?.chain().focus().toggleUnderline().run()}
           Icon={UnderlineIcon}
-          disabled={!editor || !Underline}
+          disabled={!editor || Underline === null}
         />
         <ToolbarButton onClick={() => editor?.chain().focus().toggleBulletList().run()} Icon={List} disabled={!editor} />
         <ToolbarButton onClick={() => editor?.chain().focus().toggleOrderedList().run()} Icon={ListOrdered} disabled={!editor} />
