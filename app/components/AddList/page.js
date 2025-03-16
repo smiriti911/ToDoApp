@@ -1,22 +1,32 @@
-'use client';
+"use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import TextAlign from '@tiptap/extension-text-align';
-import { useState, useEffect, useRef } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import TextAlign from "@tiptap/extension-text-align";
+import { useState, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 import {
-  Bold, Italic, Underline as UnderlineIcon, List, ListOrdered,
-  AlignLeft, AlignCenter, AlignRight, Trash, PlusCircle
-} from 'lucide-react';
-import { useTodos } from '../../TodoContext/page';
-import { addTodoToDB, updateTodoInDB, deleteTodoFromDB }  from '../../lib/api';
+  Bold,
+  Italic,
+  Underline as UnderlineIcon,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Trash,
+  PlusCircle,
+} from "lucide-react";
+import { useTodos } from "../../TodoContext/page";
+import { addTodoToDB, updateTodoInDB, deleteTodoFromDB } from "../../lib/api";
 
 const ToolbarButton = ({ onClick, Icon, disabled }) => (
   <button
     onClick={onClick}
     disabled={disabled}
-    className={`p-2 hover:bg-gray-200 rounded-md transition ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    className={`p-2 hover:bg-gray-200 rounded-md transition ${
+      disabled ? "opacity-50 cursor-not-allowed" : ""
+    }`}
   >
     <Icon size={18} />
   </button>
@@ -24,13 +34,13 @@ const ToolbarButton = ({ onClick, Icon, disabled }) => (
 
 export default function TodoEditor({ selectedTodo, toggleEditor }) {
   const { addTodo, updateTodo, deleteTodo } = useTodos();
-  const [title, setTitle] = useState(selectedTodo?.title || 'New Task');
+  const [title, setTitle] = useState(selectedTodo?.title || "New Task");
   const [currentTaskId, setCurrentTaskId] = useState(selectedTodo?.id || null);
   const [Underline, setUnderline] = useState(null);
   const saveTimeout = useRef(null);
 
   useEffect(() => {
-    import('@tiptap/extension-underline')
+    import("@tiptap/extension-underline")
       .then((mod) => setUnderline(() => mod.default))
       .catch(() => setUnderline(null));
   }, []);
@@ -38,42 +48,42 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       ...(Underline ? [Underline] : []),
     ],
-    content: selectedTodo?.details || '',
+    content: selectedTodo?.details || "",
   });
 
   useEffect(() => {
     if (!selectedTodo) {
       setTitle("New Task");
       setCurrentTaskId(null);
-      editor?.commands.clearContent();
+      if (editor && !editor.isDestroyed) editor.commands.clearContent();
       return;
     }
 
     setTitle(selectedTodo.title);
     setCurrentTaskId(selectedTodo.id);
 
-    if (editor) {
+    if (editor && !editor.isDestroyed) {
       editor.commands.setContent(selectedTodo.details || "");
     }
   }, [selectedTodo, editor]);
 
   useEffect(() => {
-    const timeoutRef = saveTimeout.current;
     return () => {
-      if (timeoutRef) clearTimeout(timeoutRef);
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
     };
   }, []);
 
   const saveTask = async () => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
 
     const content = editor.getText().trim();
     if (!title.trim() && !content) return;
 
-    const newTaskId = currentTaskId && currentTaskId.length === 36 ? currentTaskId : uuidv4();
+    const newTaskId =
+      currentTaskId && currentTaskId.length === 36 ? currentTaskId : uuidv4();
 
     const taskData = {
       id: newTaskId,
@@ -89,7 +99,11 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
         addTodo(newTask);
       }
     } else {
-      const success = await updateTodoInDB(currentTaskId, taskData.title, taskData.details);
+      const success = await updateTodoInDB(
+        currentTaskId,
+        taskData.title,
+        taskData.details
+      );
       if (success) updateTodo(currentTaskId, taskData);
     }
 
@@ -103,8 +117,8 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
     if (success) {
       deleteTodo(currentTaskId);
       setCurrentTaskId(null);
-      setTitle('New Task');
-      editor?.commands.clearContent();
+      setTitle("New Task");
+      if (editor && !editor.isDestroyed) editor.commands.clearContent();
       toggleEditor(null);
     }
   };
@@ -113,7 +127,12 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
     <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow-md">
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
-        <button onClick={() => toggleEditor(null)} className="flex items-center gap-1 text-lg font-bold">← Back</button>
+        <button
+          onClick={() => toggleEditor(null)}
+          className="flex items-center gap-1 text-lg font-bold"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* Title & Delete Button */}
@@ -131,18 +150,48 @@ export default function TodoEditor({ selectedTodo, toggleEditor }) {
 
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 mb-2 p-2 rounded-md bg-gray-100">
-        <ToolbarButton onClick={() => editor?.chain().focus().toggleBold().run()} Icon={Bold} disabled={!editor} />
-        <ToolbarButton onClick={() => editor?.chain().focus().toggleItalic().run()} Icon={Italic} disabled={!editor} />
         <ToolbarButton
-          onClick={() => editor?.can().toggleUnderline() && editor?.chain().focus().toggleUnderline().run()}
-          Icon={UnderlineIcon}
-          disabled={!editor || Underline === null}
+          onClick={() => editor?.chain().focus().toggleBold().run()}
+          Icon={Bold}
+          disabled={!editor || editor.isDestroyed}
         />
-        <ToolbarButton onClick={() => editor?.chain().focus().toggleBulletList().run()} Icon={List} disabled={!editor} />
-        <ToolbarButton onClick={() => editor?.chain().focus().toggleOrderedList().run()} Icon={ListOrdered} disabled={!editor} />
-        <ToolbarButton onClick={() => editor?.chain().focus().setTextAlign('left').run()} Icon={AlignLeft} disabled={!editor} />
-        <ToolbarButton onClick={() => editor?.chain().focus().setTextAlign('center').run()} Icon={AlignCenter} disabled={!editor} />
-        <ToolbarButton onClick={() => editor?.chain().focus().setTextAlign('right').run()} Icon={AlignRight} disabled={!editor} />
+        <ToolbarButton
+          onClick={() => editor?.chain().focus().toggleItalic().run()}
+          Icon={Italic}
+          disabled={!editor || editor.isDestroyed}
+        />
+        <ToolbarButton
+          onClick={() =>
+            editor?.chain().focus().toggleUnderline().run()
+          }
+          Icon={UnderlineIcon}
+          disabled={!editor || editor.isDestroyed || !Underline}
+        />
+        <ToolbarButton
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          Icon={List}
+          disabled={!editor || editor.isDestroyed}
+        />
+        <ToolbarButton
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          Icon={ListOrdered}
+          disabled={!editor || editor.isDestroyed}
+        />
+        <ToolbarButton
+          onClick={() => editor?.chain().focus().setTextAlign("left").run()}
+          Icon={AlignLeft}
+          disabled={!editor || editor.isDestroyed}
+        />
+        <ToolbarButton
+          onClick={() => editor?.chain().focus().setTextAlign("center").run()}
+          Icon={AlignCenter}
+          disabled={!editor || editor.isDestroyed}
+        />
+        <ToolbarButton
+          onClick={() => editor?.chain().focus().setTextAlign("right").run()}
+          Icon={AlignRight}
+          disabled={!editor || editor.isDestroyed}
+        />
       </div>
 
       {/* Editor Content */}
